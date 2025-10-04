@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Agri Rentals - Admin Dashboard</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<style>
+body { margin:0; font-family:'Segoe UI',sans-serif; background:linear-gradient(135deg,#d4fc79,#96e6a1,#5ecde0); display:flex;}
+.sidebar { width:240px; background:#2e7d32; color:white; height:100vh; padding:20px 15px; position:fixed; display:flex; flex-direction:column; box-shadow:4px 0 12px rgba(0,0,0,0.2);}
+.sidebar h2 { text-align:center; margin-bottom:25px;}
+.sidebar ul { list-style:none; padding:0; flex:1;}
+.sidebar ul li { margin:15px 0;}
+.sidebar ul li a { display:flex; align-items:center; gap:12px; padding:10px 14px; color:white; text-decoration:none; font-weight:500; border-radius:10px; transition:0.3s;}
+.sidebar ul li a:hover, .sidebar ul li a.active { background:rgba(255,255,255,0.2); transform:translateX(6px);}
+.main-content { margin-left:260px; padding:20px; width:100%;}
+header { background:#388e3c; color:white; padding:15px; border-radius:10px; box-shadow:0 5px 12px rgba(0,0,0,0.15); margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;}
+header h1 { margin:0; font-size:1.4rem;}
+
+.section { display:none; animation:fadeIn 0.6s ease;}
+.section.active { display:block;}
+
+.cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:20px;}
+.card { background:linear-gradient(135deg,#f9fbe7,#c8e6c9,#b3e5fc); border:3px solid #4caf50; padding:20px; border-radius:15px; box-shadow:0 6px 15px rgba(0,0,0,0.1); text-align:center; transition:0.3s;}
+.card:hover { transform:scale(1.05); box-shadow:0 12px 20px rgba(0,0,0,0.2);}
+.card h3 { margin:0; font-size:1.2rem;}
+.card p { margin:8px 0 0; font-size:1.1rem; font-weight:bold;}
+
+.activity-container, .form-container { background:rgba(255,255,255,0.95); border-radius:18px; padding:20px; box-shadow:0 10px 25px rgba(0,0,0,0.2); margin-top:20px;}
+.activity-container h2, .form-container h2, .form-container h3 { text-align:center; margin-bottom:20px; color:#2e7d32;}
+.activity-list { display:flex; flex-direction:column; gap:15px;}
+.activity-item { background:linear-gradient(135deg,#f9fbe7,#c8e6c9,#b3e5fc); padding:12px 15px; border-radius:12px; border:3px solid #4caf50; display:flex; align-items:center; gap:12px; transition:0.3s;}
+.activity-item:hover { transform:scale(1.04); box-shadow:0 10px 20px rgba(0,0,0,0.2);}
+.icon { font-size:24px;}
+.text { flex:1; font-size:14px; font-weight:500;}
+.time { font-size:12px; color:#555; font-style:italic;}
+
+input, select { width:100%; padding:8px; margin:8px 0; border-radius:6px; border:1px solid #4caf50;}
+button { padding:6px 12px; border:none; border-radius:6px; background:#388e3c; color:white; cursor:pointer; transition:0.3s;}
+button:hover { background:#2e7d32;}
+@keyframes fadeIn { from {opacity:0; transform:scale(0.95);} to {opacity:1; transform:scale(1);} }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+<h2>🌾 Admin</h2>
+<ul>
+  <li><a href="javascript:void(0)" onclick="showSection('dashboard', event)">📊 Dashboard</a></li>
+<li><a href="javascript:void(0)" onclick="showSection('bookings', event)">📑 Bookings</a></li>
+<li><a href="javascript:void(0)" onclick="showSection('equipment', event)">🚜 Equipment</a></li>
+
+</ul>
+</div>
+
+<div class="main-content">
+<header>
+<h1>Admin Dashboard</h1>
+<div>Welcome, Admin 👩‍🌾</div>
+</header>
+
+<!-- Dashboard -->
+<div class="section active" id="dashboard">
+  <div class="activity-container">
+    <h2>📌 Recent Activity</h2>
+    <div class="activity-list" id="activityList"></div>
+  </div>
+</div>
+
+<!-- Bookings -->
+<div class="section" id="bookings">
+  <div class="form-container">
+    <h2>📑 Add Booking</h2>
+    <form id="addBookingForm">
+      <input type="text" id="bUser" placeholder="User Name" required>
+      <input type="text" id="bEquipment" placeholder="Equipment Name" required>
+      <input type="date" id="bDate" required>
+      <button type="submit">Add Booking</button>
+    </form>
+  </div>
+  <div class="cards" id="bookingList"></div>
+</div>
+
+<!-- Equipment -->
+<div class="section" id="equipment">
+  <div class="form-container">
+    <h2>🚜 Manage Equipment</h2>
+    <form id="addEquipmentForm">
+      <input type="text" id="eqName" placeholder="Equipment Name" required>
+      <input type="text" id="eqCategory" placeholder="Category" required>
+      <input type="number" id="eqPrice" placeholder="Price per day" required>
+      <select id="eqStatus">
+        <option value="Available">Available</option>
+        <option value="Rented">Rented</option>
+      </select>
+      <input type="text" id="eqImage" placeholder="Image URL">
+      <button type="submit">Add Equipment</button>
+    </form>
+  </div>
+  <div class="cards" id="equipmentList"></div>
+</div>
+
+</div>
+
+<script>
+function showSection(id, event){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.sidebar a').forEach(a=>a.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+
+// Firebase Config
+const firebaseConfig = {
+  apiKey: "AIzaSyCOaZb_iRF_PGaxGWB0iRBnjIxzQvjHTP8",
+  authDomain: "smartagroapp.firebaseapp.com",
+  projectId: "smartagroapp-491dc",
+  storageBucket: "smartagroapp.appspot.com",
+  messagingSenderId: "1008595498005",
+  appId: "1:1008595498005:web:2308f7f71feb0a8c45ca1c"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const addEquipmentForm = document.getElementById('addEquipmentForm');
+const equipmentListDiv = document.getElementById('equipmentList');
+const addBookingForm = document.getElementById('addBookingForm');
+const bookingListDiv = document.getElementById('bookingList');
+
+
+// 🔹 Dashboard Recent Activity
+const activityListDiv = document.getElementById('activityList');
+db.collection('admin_activity').orderBy('createdAt','desc').limit(10).onSnapshot(snapshot=>{
+  activityListDiv.innerHTML='';
+  snapshot.docs.forEach(doc=>{
+    const act=doc.data();
+    activityListDiv.innerHTML+=`
+      <div class="activity-item">
+        <span class="icon">${act.icon}</span>
+        <div class="text">${act.text}<div class="time">${act.time}</div></div>
+      </div>
+    `;
+  });
+});
+
+// 🔹 Add Equipment
+addEquipmentForm.addEventListener('submit', e=>{
+  e.preventDefault();
+  const name = document.getElementById('eqName').value;
+  const category = document.getElementById('eqCategory').value;
+  const price = parseFloat(document.getElementById('eqPrice').value);
+  const status = document.getElementById('eqStatus').value;
+  const image = document.getElementById('eqImage').value;
+
+  db.collection('admin_equipment').add({
+    name, category, pricePerDay: price, status, image,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  })
+  .then(()=>{
+    addEquipmentForm.reset();
+
+    // Add to Recent Activity
+    db.collection('admin_activity').add({
+      icon: "🚜",
+      text: `Added Equipment: ${name}`,
+      time: new Date().toLocaleString(),
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+  }).catch(console.error);
+});
+
+// 🔹 Equipment Real-time List + Delete + Update
+db.collection('admin_equipment').orderBy('createdAt','desc').onSnapshot(snapshot => {
+  equipmentListDiv.innerHTML = '';
+  snapshot.docs.forEach(doc => {
+    const eq = doc.data();
+
+    const card = document.createElement('div');
+    card.classList.add('card');
+    card.innerHTML = `
+      <b>${eq.name}</b><br>${eq.category}<br>₹${eq.pricePerDay}<br>${eq.status}<br>
+      <button class="deleteBtn">Delete</button>
+      <button class="updateBtn">Update</button>
+    `;
+
+    // Delete button
+    card.querySelector('.deleteBtn').addEventListener('click', () => {
+      if(confirm(`Delete ${eq.name}?`)) {
+        db.collection('admin_equipment').doc(doc.id).delete().catch(console.error);
+      }
+    });
+
+    // Update button
+    card.querySelector('.updateBtn').addEventListener('click', () => {
+      const newName = prompt('Edit Name', eq.name);
+      if (!newName) return;
+      const newCategory = prompt('Edit Category', eq.category);
+      if (!newCategory) return;
+      const newPrice = prompt('Edit Price', eq.pricePerDay);
+      if (!newPrice) return;
+      const newStatus = prompt('Edit Status', eq.status);
+      if (!newStatus) return;
+
+      db.collection('admin_equipment').doc(doc.id).update({
+        name: newName,
+        category: newCategory,
+        pricePerDay: parseFloat(newPrice),
+        status: newStatus,
+        image: eq.image
+      }).catch(console.error);
+    });
+
+    equipmentListDiv.appendChild(card);
+  });
+});
+
+
+function deleteEquipment(id){ db.collection('admin_equipment').doc(id).delete().catch(console.error); }
+
+function updateEquipment(id,name,category,price,status,image){
+  const newName = prompt('Edit Name',name);
+  if(!newName) return;
+  const newCategory = prompt('Edit Category',category);
+  if(!newCategory) return;
+  const newPrice = prompt('Edit Price',price);
+  if(!newPrice) return;
+  const newStatus = prompt('Edit Status',status);
+  if(!newStatus) return;
+  db.collection('admin_equipment').doc(id).update({name:newName,category:newCategory,pricePerDay:parseFloat(newPrice),status:newStatus,image}).catch(console.error);
+}
+
+// 🔹 Add Booking
+addBookingForm.addEventListener('submit', e=>{
+  e.preventDefault();
+  const user = document.getElementById('bUser').value;
+  const equipment = document.getElementById('bEquipment').value;
+  const date = document.getElementById('bDate').value;
+
+  db.collection('admin_bookings').add({
+    user, equipment, date,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  })
+  .then(()=>{
+    addBookingForm.reset();
+
+    // Add to Recent Activity
+    db.collection('admin_activity').add({
+      icon: "📑",
+      text: `New Booking: ${user} booked ${equipment}`,
+      time: new Date().toLocaleString(),
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+  }).catch(console.error);
+});
+
+// 🔹 Real-time Booking List
+db.collection('admin_bookings').orderBy('createdAt','desc').onSnapshot(snapshot=>{
+  bookingListDiv.innerHTML='';
+  snapshot.docs.forEach(doc=>{
+    const bk=doc.data();
+    bookingListDiv.innerHTML+=`
+      <div class="card">
+        <b>${bk.user}</b><br>${bk.equipment}<br>${bk.date}<br>
+        <button onclick="deleteBooking('${doc.id}')">Delete</button>
+      </div>
+    `;
+  });
+});
+
+function deleteBooking(id){ db.collection('admin_bookings').doc(id).delete().catch(console.error); }
+</script>
+
+</body>
+</html>

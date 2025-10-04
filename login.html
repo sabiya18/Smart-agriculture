@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgriRent - Smart Agriculture Equipment Rental</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif;}
+    body{background:linear-gradient(135deg,#e8f5e9,#c8e6c9);display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px;}
+    .container{width:100%;max-width:450px;animation:fadeIn 1s ease;}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+    .logo-section{text-align:center;margin-bottom:30px;animation:slideDown 0.8s ease;}
+    @keyframes slideDown{from{transform:translateY(-30px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+    .logo{font-size:3.5rem;color:#2e7d32;margin-bottom:10px;animation:bounce 2s infinite;}
+    @keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+    .logo-section h1{color:#1b5e20;font-size:2.2rem;margin-bottom:5px;}
+    .logo-section p{color:#388e3c;font-size:1.1rem;}
+    .login-card{background:rgba(255,255,255,0.95);border-radius:20px;padding:40px 30px;box-shadow:0 15px 35px rgba(0,0,0,0.1);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);animation:scaleUp 0.8s ease;}
+    @keyframes scaleUp{from{transform:scale(0.9);opacity:0;}to{transform:scale(1);opacity:1;}}
+    .form-title{font-size:1.8rem;color:#2e7d32;margin-bottom:10px;text-align:center;}
+    .form-subtitle{color:#666;margin-bottom:30px;text-align:center;font-size:1rem;}
+    .form-group{margin-bottom:25px;position:relative;}
+    .form-group label{display:block;margin-bottom:8px;font-weight:600;color:#444;font-size:0.95rem;}
+    .form-control{width:100%;padding:15px 20px;border:2px solid #ddd;border-radius:12px;font-size:1rem;transition:all 0.3s ease;background:#f9f9f9;}
+    .form-control:focus{border-color:#4caf50;box-shadow:0 0 0 3px rgba(76,175,80,0.2);outline:none;background:white;transform:translateY(-2px);}
+    .btn{display:block;width:100%;padding:15px;background:linear-gradient(135deg,#4caf50,#2e7d32);color:white;border:none;border-radius:12px;font-size:1.1rem;font-weight:600;cursor:pointer;transition:all 0.3s ease;position:relative;overflow:hidden;}
+    .btn:hover{transform:translateY(-3px);box-shadow:0 10px 20px rgba(0,0,0,0.15);}
+    .btn:active{transform:translateY(0);}
+    .btn::after{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent);transition:left 0.5s;}
+    .btn:hover::after{left:100%;}
+    .form-footer{text-align:center;margin-top:25px;font-size:0.9rem;color:#666;}
+    .form-footer a{color:#4caf50;text-decoration:none;font-weight:600;transition:color 0.3s;}
+    .form-footer a:hover{color:#2e7d32;text-decoration:underline;}
+    .otp-container{display:none;text-align:center;animation:fadeIn 0.5s ease;}
+    .otp-inputs{display:flex;justify-content:space-between;margin:25px 0;}
+    .otp-input{width:55px;height:55px;text-align:center;font-size:1.5rem;border:2px solid #ddd;border-radius:12px;background:#f9f9f9;transition:all 0.3s ease;}
+    .otp-input:focus{border-color:#4caf50;box-shadow:0 0 0 3px rgba(76,175,80,0.2);outline:none;background:white;transform:scale(1.05);}
+    .resend-otp{color:#4caf50;cursor:pointer;margin-top:15px;display:inline-block;font-weight:600;transition:color 0.3s;}
+    .resend-otp:hover{color:#2e7d32;text-decoration:underline;}
+    .success-message{background:#4caf50;color:white;padding:12px;border-radius:10px;text-align:center;margin-bottom:20px;display:none;animation:slideIn 0.5s ease;}
+    @keyframes slideIn{from{transform:translateY(-10px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+    .loader{display:none;width:25px;height:25px;border:3px solid rgba(255,255,255,0.3);border-radius:50%;border-top-color:white;animation:spin 1s ease-in-out infinite;margin:0 auto;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+
+<div class="container">
+<div class="logo-section">
+        <img src="images/logo.png" alt="AgriRent Logo" style="height:80px; margin-bottom:10px;">
+
+    <div class="logo"><i class="fas fa-tractor"></i></div>
+    <h1>AgriRent</h1>
+    <p>Smart Agriculture Equipment Rental</p>
+</div>
+
+<div class="login-card">
+    <div id="login-form">
+        <h2 class="form-title">Login with OTP</h2>
+        <p class="form-subtitle">Enter your mobile number to receive OTP</p>
+        <div class="success-message" id="login-success"></div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="login-mobile">Mobile Number</label>
+                <input type="tel" id="login-mobile" class="form-control" placeholder="Enter your 10-digit mobile number" required>
+            </div>
+            <button type="submit" class="btn" id="get-otp-btn"><span>Send OTP</span><div class="loader" id="get-otp-loader"></div></button>
+        </form>
+        <div class="form-footer"><p>By continuing, you agree to our <a href="#">Terms</a> & <a href="#">Privacy</a></p></div>
+    </div>
+
+    <div id="otp-verification" class="otp-container">
+        <h2 class="form-title">Verify OTP</h2>
+        <div class="otp-inputs">
+            <input type="text" class="otp-input" maxlength="1">
+            <input type="text" class="otp-input" maxlength="1">
+            <input type="text" class="otp-input" maxlength="1">
+            <input type="text" class="otp-input" maxlength="1">
+            <input type="text" class="otp-input" maxlength="1">
+            <input type="text" class="otp-input" maxlength="1">
+        </div>
+        <button type="button" class="btn" id="verify-otp-btn"><span>Verify & Login</span><div class="loader" id="otp-loader"></div></button>
+        <p class="resend-otp" id="resend-otp">Resend OTP</p>
+        <div class="form-footer"><p><a href="#" id="back-to-login">Back to Login</a></p></div>
+    </div>
+</div>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCOaZb_iRF_PGaxGWB0iRBnjIxzQvjHTP8",
+  authDomain: "smartagroapp.firebaseapp.com",
+  projectId: "smartagroapp-491dc",
+  storageBucket: "smartagroapp.appspot.com",
+  messagingSenderId: "1008595498005",
+  appId: "1:1008595498005:web:2308f7f71feb0a8c45ca1c"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+const loginForm = document.getElementById('login-form');
+const otpVerification = document.getElementById('otp-verification');
+const getOtpBtn = document.getElementById('get-otp-btn');
+const verifyOtpBtn = document.getElementById('verify-otp-btn');
+const otpInputs = document.querySelectorAll('.otp-input');
+const resendOtpLink = document.getElementById('resend-otp');
+const backToLoginLink = document.getElementById('back-to-login');
+const getOtpLoader = document.getElementById('get-otp-loader');
+const otpLoader = document.getElementById('otp-loader');
+
+// Invisible Recaptcha
+window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('get-otp-btn', {
+    'size':'invisible'
+});
+
+// Send OTP
+loginForm.querySelector('form').addEventListener('submit', function(e){
+    e.preventDefault();
+    const mobile = document.getElementById('login-mobile').value;
+    if(!/^[6-9]\d{9}$/.test(mobile)){ alert('Invalid mobile'); return; }
+
+    getOtpBtn.querySelector('span').style.display='none';
+    getOtpLoader.style.display='block';
+    getOtpBtn.disabled=true;
+
+    auth.signInWithPhoneNumber('+91'+mobile, window.recaptchaVerifier)
+        .then((confirmationResult)=>{
+            window.confirmationResult = confirmationResult;
+            loginForm.style.display='none';
+            otpVerification.style.display='block';
+            getOtpBtn.querySelector('span').style.display='block';
+            getOtpLoader.style.display='none';
+            getOtpBtn.disabled=false;
+            alert('OTP Sent!');
+        }).catch((err)=>{alert(err.message);getOtpBtn.querySelector('span').style.display='block';getOtpLoader.style.display='none';getOtpBtn.disabled=false;});
+});
+
+// Verify OTP
+verifyOtpBtn.addEventListener('click', function(){
+    let otp = '';
+    otpInputs.forEach(input=>otp+=input.value);
+    if(otp.length!==6){alert('Enter 6 digits');return;}
+
+    verifyOtpBtn.querySelector('span').style.display='none';
+    otpLoader.style.display='block';
+    verifyOtpBtn.disabled=true;
+
+    window.confirmationResult.confirm(otp).then((result)=>{
+        const user = result.user;
+        db.collection('users').doc(user.uid).set({phone:user.phoneNumber,lastLogin:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+        alert('Login successful! Redirecting...');
+        window.location.href='index.html';
+    }).catch((err)=>{
+        alert('Invalid OTP');
+        verifyOtpBtn.querySelector('span').style.display='block';
+        otpLoader.style.display='none';
+        verifyOtpBtn.disabled=false;
+    });
+});
+
+// Back to login
+backToLoginLink.addEventListener('click', function(e){
+    e.preventDefault();
+    loginForm.style.display='block';
+    otpVerification.style.display='none';
+});
+
+// Resend OTP
+resendOtpLink.addEventListener('click', function(){
+    const mobile = document.getElementById('login-mobile').value;
+    auth.signInWithPhoneNumber('+91'+mobile, window.recaptchaVerifier)
+        .then((confirmationResult)=>{
+            window.confirmationResult=confirmationResult;
+            alert('OTP Resent!');
+        }).catch(err=>alert(err.message));
+});
+</script>
+
+</body>
+</html>

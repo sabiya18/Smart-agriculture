@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Logout - Smart Agriculture</title>
+
+  <!-- 🔗 Keep your original CSS (unchanged) -->
+  <style>
+    /* [All your original styles here — unchanged for brevity] */
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .overlay {
+      background: url('https://images.unsplash.com/photo-1501004318641-b39e6451bec6') center/cover no-repeat;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      position: relative;
+      animation: zoomStart 2s ease forwards;
+    }
+
+    @keyframes zoomStart {
+      0%   { transform: scale(1.15); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes zoomOutExit {
+      0%   { transform: scale(1); }
+      100% { transform: scale(0.9); }
+    }
+
+    .dark-overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(255,255,255,0);
+      transition: background 0.8s ease;
+      z-index: 1;
+    }
+
+    .dark-overlay.fade-out-bg {
+      background: rgba(0, 0, 0, 0.6);
+    }
+
+    .logout-container {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      text-align: center;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+      animation: fadeIn 1s ease forwards;
+      transform: translateY(30px);
+      opacity: 0;
+      max-width: 400px;
+      transition: all 0.8s ease;
+      z-index: 2;
+      position: relative;
+    }
+
+    .logout-container.fade-out {
+      opacity: 0;
+      transform: translateY(-40px) scale(0.95);
+      box-shadow: none;
+    }
+
+    .logout-container h2 {
+      color: #2E7D32;
+      margin-bottom: 10px;
+    }
+
+    .logout-container p {
+      color: #555;
+      margin-bottom: 15px;
+    }
+
+    .countdown {
+      font-weight: bold;
+      color: #2E7D32;
+      font-size: 1.2rem;
+      margin-bottom: 25px;
+    }
+
+    .count {
+      display: inline-block;
+      animation: none;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.4); opacity: 0.8; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 12px 28px;
+      background: linear-gradient(135deg, #4CAF50, #2E7D32);
+      color: white;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 1rem;
+      transition: all 0.4s ease;
+      box-shadow: 0 5px 15px rgba(46, 125, 50, 0.3);
+    }
+
+    .btn:hover {
+      transform: scale(1.05) translateY(-3px);
+      box-shadow: 0 8px 20px rgba(46, 125, 50, 0.4);
+    }
+
+    @keyframes fadeIn {
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .checkmark {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      display: inline-block;
+      position: relative;
+      box-shadow: inset 0px 0px 0px #4CAF50;
+      animation: fillCircle 0.4s ease forwards 0.4s;
+    }
+
+    .checkmark::after {
+      content: '';
+      position: absolute;
+      left: 18px;
+      top: 32px;
+      width: 20px;
+      height: 40px;
+      border-right: 5px solid white;
+      border-bottom: 5px solid white;
+      transform: rotate(45deg) scale(0);
+      animation: drawCheck 0.4s ease forwards 0.8s;
+    }
+
+    @keyframes fillCircle {
+      to {
+        box-shadow: inset 0px 0px 0px 35px #4CAF50;
+      }
+    }
+
+    @keyframes drawCheck {
+      to {
+        transform: rotate(45deg) scale(1);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="overlay" id="overlay">
+    <div class="dark-overlay" id="darkBg"></div>
+    <div class="logout-container" id="logoutBox">
+      <div class="checkmark"></div>
+      <h2>Logged Out Successfully</h2>
+      <p>Thank you for using <b>Smart Agriculture & Equipment Rentals</b>. We hope to see you soon! 🌱</p>
+      <div class="countdown">Redirecting in <span class="count" id="count">3</span> seconds...</div>
+      <a href="login.html" class="btn">Login Again</a>
+    </div>
+  </div>
+
+  <!-- Firebase Modular SDK -->
+  <script type="module">
+    import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCOaZb_iRF_PGaxGWB0iRBnjIxzQvjHTP8",
+      authDomain: "smartagroapp.firebaseapp.com",
+      projectId: "smartagroapp-491dc",
+      // etc.
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const countElement = document.getElementById("count");
+    const darkBg = document.getElementById("darkBg");
+    const logoutBox = document.getElementById("logoutBox");
+    const overlay = document.getElementById("overlay");
+
+    function startCountdown() {
+      let counter = 3;
+      const timer = setInterval(() => {
+        counter--;
+        countElement.textContent = counter;
+        countElement.style.animation = "pop 0.4s ease";
+        setTimeout(() => countElement.style.animation = "none", 400);
+        if (counter === 0) {
+          clearInterval(timer);
+          darkBg.classList.add("fade-out-bg");
+          logoutBox.classList.add("fade-out");
+          overlay.style.animation = "zoomOutExit 1s ease forwards";
+          setTimeout(() => {
+            window.location.href = "login.html";
+          }, 1000);
+        }
+      }, 1000);
+    }
+
+    signOut(auth)
+      .then(() => {
+        console.log("User signed out.");
+        startCountdown();
+      })
+      .catch((error) => {
+        console.error("Sign out error:", error);
+        // Optionally redirect anyway
+        startCountdown();
+      });
+  </script>
+</body>
+</html>

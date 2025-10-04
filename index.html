@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Agri Rentals</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif;}
+    body{
+      background:linear-gradient(135deg,#d4fc79,#96e6a1);
+      overflow-x:hidden;color:#333;
+    }
+    header{
+      position:fixed;top:0;left:0;width:100%;
+      background:#2e7d32;color:#fff;
+      display:flex;justify-content:space-between;align-items:center;
+      padding:14px 20px;z-index:1000;box-shadow:0 2px 6px rgba(0,0,0,0.15);
+    }
+    header h1{font-size:1.2rem;display:flex;align-items:center;gap:8px;}
+    .hamburger{cursor:pointer;width:30px;height:22px;display:flex;flex-direction:column;justify-content:space-between;}
+    .hamburger div{background:#fff;height:3px;border-radius:2px;transition:0.3s;}
+    nav{
+      position:fixed;top:0;right:-260px;width:260px;height:100%;
+      background:#388e3c;color:white;transition:0.4s ease;
+      box-shadow:-3px 0 8px rgba(0,0,0,0.3);padding-top:70px;
+    }
+    nav.active{right:0;}
+    .search-box{padding:10px 20px;}
+    .search-box input{
+      width:100%;padding:10px;border:none;border-radius:8px;
+      outline:none;font-size:0.95rem;
+      box-shadow:inset 0 0 5px rgba(0,0,0,0.2);
+    }
+    nav ul{list-style:none;padding-top:10px;}
+    nav ul li{border-bottom:1px solid rgba(255,255,255,0.15);}
+    nav ul li a{
+      display:flex;align-items:center;gap:10px;
+      color:white;text-decoration:none;padding:14px 20px;
+      transition:all 0.3s ease;
+    }
+    nav ul li a:hover{
+      background:rgba(255,255,255,0.2);
+      transform:translateX(5px);
+    }
+    .hamburger.active div:nth-child(1){transform:rotate(45deg) translate(5px,5px);}
+    .hamburger.active div:nth-child(2){opacity:0;}
+    .hamburger.active div:nth-child(3){transform:rotate(-45deg) translate(5px,-5px);}
+    .content{padding:100px 20px;text-align:center;max-width:900px;margin:auto;}
+    .content h2{font-size:2rem;margin-bottom:15px;color:#2e7d32;}
+    .content p{font-size:1.1rem;line-height:1.6;}
+    .card{
+      background:linear-gradient(135deg,#a8ff78,#78ffd6);
+      padding:25px;margin:20px auto;border-radius:15px;
+      max-width:600px;
+      font-size:1.05rem;line-height:1.6;
+      box-shadow:0 8px 20px rgba(0,0,0,0.15);
+      transition:transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card:hover{
+      transform:translateY(-8px) scale(1.02);
+      box-shadow:0 12px 25px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🌾 Smart Agri Rentals</h1>
+  <div class="hamburger" id="hamburger">
+    <div></div><div></div><div></div>
+  </div>
+</header>
+
+<nav id="sideMenu">
+  <div class="search-box">
+    <input type="text" placeholder="Search...">
+  </div>
+  <ul>
+    <li><a href="allequipment.html">🚜 All Equipment</a></li>
+    <li><a href="edp.html">🔧 Equipment Details</a></li>
+    <li><a href="bookingp.html">📦 My Booking</a></li>
+    <li><a href="profile.html">👤 Profile</a></li>
+    <li><a href="2.html">🛠 Admin Panel</a></li>
+    <li><a href="contact.html">📞 Contact</a></li>
+    <li><a href="aboutpage.html">ℹ About</a></li>
+    <li><a href="logoutpage.html">🚪 Logout</a></li>
+  </ul>
+</nav>
+
+<div class="content">
+  <h2>Welcome to Smart Agriculture & Equipment Rentals</h2>
+  <p>
+    Rent modern farming equipment, manage bookings, make payments, and explore smart farming tools to boost your productivity.
+  </p>
+</div>
+
+<!-- GSAP Animation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>
+  const hamburger = document.getElementById('hamburger');
+  const sideMenu = document.getElementById('sideMenu');
+
+  hamburger.addEventListener('click', () => {
+    hamburger.classList.toggle('active');
+    sideMenu.classList.toggle('active');
+  });
+
+  // GSAP Animations
+  gsap.from("header", {y: -80, duration: 1, ease: "bounce"});
+  gsap.from(".card", {opacity: 0, y: 50, stagger: 0.3, duration: 1, ease: "power2.out"});
+  gsap.from(".content h2", {opacity: 0, scale: 0.5, duration: 1.2, ease: "elastic.out(1, 0.5)"});
+</script>
+
+<!-- Firebase SDK and Auth Check -->
+<script type="module">
+  import { auth } from './firebase.js';
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-auth.js";
+
+  // Check if user is logged in
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      window.location.href = "login.html"; // redirect to login if not authenticated
+    } else {
+      console.log("User is logged in:", user.email);
+    }
+  });
+</script>
+
+
+<script type="module" src="dashboard.js"></script>
+
+</body>
+</html>

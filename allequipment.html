@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>All Equipment - Smart Agriculture</title>
+  <style>
+    :root {
+      --accent1: #96e6a1;
+      --accent2: #4caf50;
+      --muted: #666;
+      --card-shadow: 0 4px 18px rgba(0,0,0,0.10);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: 'Poppins', system-ui, Arial;
+      background: linear-gradient(180deg, #f6fff0, #f0f9f4);
+      color: #14332b;
+    }
+
+    header {
+      background: linear-gradient(90deg, var(--accent1), var(--accent2));
+      color: white;
+      padding: 18px 16px;
+      text-align: center;
+      font-weight: 700;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+
+    .filter-bar {
+      display: flex;
+      gap: 10px;
+      padding: 14px;
+      background: white;
+      margin: 14px;
+      border-radius: 12px;
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+      align-items: center;
+      box-shadow: var(--card-shadow);
+    }
+
+    .filter-bar input,
+    .filter-bar select {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #e6f4ea;
+      flex: 1;
+    }
+
+    .wrap {
+      max-width: 1200px;
+      margin: 18px auto;
+      padding: 0 12px;
+    }
+
+    .equipment-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      box-shadow: var(--card-shadow);
+      transition: transform .3s ease;
+      opacity: 0;
+      transform: translateY(18px);
+    }
+
+    .card.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .card img {
+      width: 100%;
+      height: 170px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 14px 30px rgba(18,50,40,0.12);
+    }
+
+    .card-content {
+      padding: 14px 16px;
+    }
+
+    .card h3 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      color: #114031;
+    }
+
+    .card p {
+      margin: 6px 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .price {
+      font-weight: 700;
+      color: var(--accent2);
+      margin-top: 8px;
+      font-size: 15px;
+    }
+
+    #loader {
+      display: flex;
+      justify-content: center;
+      margin: 36px 0;
+    }
+
+    .spinner {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: 6px solid rgba(0,0,0,0.06);
+      border-top-color: var(--accent2);
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .message {
+      text-align: center;
+      color: #444;
+      margin: 28px 0;
+      font-size: 16px;
+    }
+
+    @media (max-width: 480px) {
+      .filter-bar {
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .card img {
+        height: 150px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>🚜 Smart Agri Rentals — All Equipment</header>
+
+  <div class="wrap">
+    <div class="filter-bar">
+      <input id="search" placeholder="Search equipment..." />
+      <select id="category">
+        <option value="all">All Categories</option>
+        <option value="tractor">Tractor</option>
+        <option value="cultivation">Cultivation</option>
+        <option value="irrigation">Irrigation</option>
+        <option value="seeder">Seeder</option>
+        <option value="harvester">Harvester</option>
+      </select>
+      <select id="sort">
+        <option value="default">Sort By</option>
+        <option value="priceLow">Price: Low → High</option>
+        <option value="priceHigh">Price: High → Low</option>
+      </select>
+    </div>
+
+    <div id="loader"><div class="spinner"></div></div>
+    <div id="message" class="message"></div>
+    <div class="equipment-grid" id="equipmentGrid"></div>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyCOaZb_iRF_PGaxGWB0iRBnjIxzQvjHTP8",
+      authDomain: "smartagroapp.firebaseapp.com",
+      projectId: "smartagroapp-491dc",
+      storageBucket: "smartagroapp.appspot.com",
+      messagingSenderId: "1008595498005",
+      appId: "1:1008595498005:web:2308f7f71feb0a8c45ca1c"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const equipmentGrid = document.getElementById('equipmentGrid');
+    const loader = document.getElementById('loader');
+    const message = document.getElementById('message');
+    const search = document.getElementById('search');
+    const category = document.getElementById('category');
+    const sort = document.getElementById('sort');
+
+    let equipmentData = [];
+
+    function showLoader(show) {
+      loader.style.display = show ? 'flex' : 'none';
+    }
+
+    async function fetchEquipment() {
+      showLoader(true);
+      message.textContent = '';
+      equipmentGrid.innerHTML = '';
+      try {
+        const snap = await db.collection('equipment').orderBy('name').get();
+        equipmentData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        if (equipmentData.length === 0) {
+          message.textContent = 'No equipment found in the database.';
+        }
+        applyFiltersAndRender();
+      } catch (err) {
+        console.error(err);
+        message.textContent = 'Error fetching equipment: ' + (err.message || err);
+      } finally {
+        showLoader(false);
+      }
+    }
+
+    function renderEquipment(arr) {
+      equipmentGrid.innerHTML = '';
+      arr.forEach((item, idx) => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        setTimeout(() => card.classList.add('visible'), 50 + idx * 80);
+
+        card.innerHTML = `
+          <img loading="lazy" src="${escapeHtml(item.img || '')}" alt="${escapeHtml(item.name || 'equipment')}">
+          <div class="card-content">
+            <h3>${escapeHtml(item.name || 'Unnamed')}</h3>
+            <p>Category: ${escapeHtml(item.category || '-')}</p>
+            <p class="price">₹${escapeHtml(String(item.price || 0))} / day</p>
+          </div>
+        `;
+
+        // Click to go to EDP
+        card.addEventListener('click', () => {
+          localStorage.setItem('selectedEquipment', JSON.stringify(item));
+          window.location.href = 'edp.html';
+        });
+
+        equipmentGrid.appendChild(card);
+      });
+    }
+
+    function applyFiltersAndRender() {
+      const q = search.value.trim().toLowerCase();
+      const cat = category.value;
+      const s = sort.value;
+
+      let filtered = equipmentData.filter(e => {
+        const matchesCat = (cat === 'all') || (e.category === cat);
+        const matchesQ = (e.name || '').toLowerCase().includes(q);
+        return matchesCat && matchesQ;
+      });
+
+      if (s === 'priceLow') filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
+      else if (s === 'priceHigh') filtered.sort((a, b) => (b.price || 0) - (a.price || 0));
+
+      if (filtered.length === 0) {
+        message.textContent = 'No equipment matches your filters.';
+      } else {
+        message.textContent = '';
+      }
+
+      renderEquipment(filtered);
+    }
+
+    function escapeHtml(text) {
+      return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    search.addEventListener('input', applyFiltersAndRender);
+    category.addEventListener('change', applyFiltersAndRender);
+    sort.addEventListener('change', applyFiltersAndRender);
+
+    fetchEquipment();
+  </script>
+</body>
+</html>

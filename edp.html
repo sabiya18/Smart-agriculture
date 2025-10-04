@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Equipment Details</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f0fdf4;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    }
+    img {
+      width: 100%;
+      height: auto;
+      max-height: 300px;
+      object-fit: cover;
+      border-radius: 12px;
+    }
+    h2 {
+      color: #2e7d32;
+      margin-top: 20px;
+    }
+    p {
+      font-size: 16px;
+      color: #444;
+    }
+    .booking-form {
+      margin-top: 30px;
+    }
+    input {
+      width: 100%;
+      padding: 14px;
+      margin: 10px 0;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+    button {
+      background: linear-gradient(90deg, #a8e6a1, #4caf50);
+      color: white;
+      border: none;
+      padding: 14px 22px;
+      font-size: 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.3s;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #43a047;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <img id="equipmentImage" src="" alt="Equipment Image" />
+  <h2 id="equipmentName">Loading...</h2>
+  <p id="equipmentDescription"></p>
+  <p><strong>Category:</strong> <span id="equipmentCategory"></span></p>
+  <p><strong>Price per day:</strong> ₹<span id="equipmentPrice"></span></p>
+
+  <div class="booking-form">
+    <h3>Book this Equipment</h3>
+    <input type="text" id="name" placeholder="Your Name" />
+    <input type="date" id="startDate" />
+    <input type="date" id="endDate" />
+    <button id="confirmBookingBtn">Confirm Booking</button>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<!-- Firebase config -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCOaZb_iRF_PGaxGWB0iRBnjIxzQvjHTP8",
+    authDomain: "smartagroapp.firebaseapp.com",
+    projectId: "smartagroapp-491dc",
+    storageBucket: "smartagroapp.appspot.com",
+    messagingSenderId: "1008595498005",
+    appId: "1:1008595498005:web:2308f7f71feb0a8c45ca1c"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const equipment = JSON.parse(localStorage.getItem('selectedEquipment'));
+  if (!equipment) {
+    alert("No equipment selected. Redirecting...");
+    window.location.href = 'allequipment.html';
+  }
+
+  // Display equipment data
+  document.getElementById("equipmentImage").src = equipment.img || "placeholder.jpg";
+  document.getElementById("equipmentName").textContent = equipment.name || "Unnamed Equipment";
+  document.getElementById("equipmentDescription").textContent = equipment.description || "No description available.";
+  document.getElementById("equipmentCategory").textContent = equipment.category || "N/A";
+  document.getElementById("equipmentPrice").textContent = equipment.price || "0";
+
+  document.getElementById("confirmBookingBtn").addEventListener("click", async () => {
+    const name = document.getElementById("name").value.trim();
+    const startDate = document.getElementById("startDate").value;
+    const endDate = document.getElementById("endDate").value;
+
+    if (!name || !startDate || !endDate) {
+      alert("Please fill all fields.");
+      return;
+    }
+
+    try {
+      const bookingRef = await addDoc(collection(db, "bookings"), {
+        name,
+        startDate,
+        endDate,
+        equipmentId: equipment.id,
+        equipmentName: equipment.name,
+        pricePerDay: equipment.price,
+        timestamp: serverTimestamp()
+      });
+
+      // Redirect to booking confirmation page
+      window.location.href = `bookingp.html?bookingId=${bookingRef.id}`;
+    } catch (err) {
+      console.error("Failed to create booking:", err);
+      alert("Failed to create booking. Please try again.");
+    }
+  });
+</script>
+</body>
+</html>

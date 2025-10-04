@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Booking Details & Payment</title>
+  <style>
+    /* (same styles as before) */
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f4f8f5;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      max-width: 500px;
+      background: #fff;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+      width: 100%;
+    }
+    h2 {
+      color: #2e7d32;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    p {
+      font-size: 16px;
+      color: #333;
+      margin: 10px 0;
+    }
+    label {
+      display: block;
+      margin: 15px 0 5px;
+      font-weight: 600;
+    }
+    select {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 12px;
+      border: 1px solid #ccc;
+      outline: none;
+    }
+    button {
+      margin-top: 25px;
+      width: 100%;
+      padding: 14px;
+      font-size: 18px;
+      font-weight: 700;
+      color: white;
+      background: linear-gradient(90deg, #a8e6a1, #4caf50);
+      border: none;
+      border-radius: 15px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #43a047;
+    }
+    .loading {
+      text-align: center;
+      color: #888;
+      margin: 30px 0;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Booking Summary</h2>
+  <div id="bookingDetails" class="loading">Loading booking details...</div>
+
+  <label for="paymentMethod">Select Payment Method</label>
+  <select id="paymentMethod">
+    <option value="">-- Select Payment Method --</option>
+    <option value="UPI">UPI</option>
+    <option value="Cash On Delivery">Cash On Delivery</option>
+  </select>
+
+  <button id="continueBtn">Continue</button>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCOaZb_iRF_PGaxGWB0iRBnjIxzQvjHTP8",
+    authDomain: "smartagroapp.firebaseapp.com",
+    projectId: "smartagroapp-491dc",
+    storageBucket: "smartagroapp.appspot.com",
+    messagingSenderId: "1008595498005",
+    appId: "1:1008595498005:web:2308f7f71feb0a8c45ca1c"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const bookingId = urlParams.get('bookingId');
+
+  const bookingDetailsDiv = document.getElementById('bookingDetails');
+  const paymentMethodSelect = document.getElementById('paymentMethod');
+  const continueBtn = document.getElementById('continueBtn');
+
+  async function loadBooking() {
+    if (!bookingId) {
+      bookingDetailsDiv.textContent = "Booking ID not found.";
+      return;
+    }
+
+    try {
+      const bookingRef = doc(db, "bookings", bookingId);
+      const bookingSnap = await getDoc(bookingRef);
+
+      if (bookingSnap.exists()) {
+        const booking = bookingSnap.data();
+
+        bookingDetailsDiv.innerHTML = `
+          <p><strong>Name:</strong> ${booking.name}</p>
+          <p><strong>Equipment:</strong> ${booking.equipmentName}</p>
+          <p><strong>Start Date:</strong> ${booking.startDate}</p>
+          <p><strong>End Date:</strong> ${booking.endDate}</p>
+          <p><strong>Price per day:</strong> ₹${booking.pricePerDay || 'N/A'}</p>
+        `;
+      } else {
+        bookingDetailsDiv.textContent = "Booking not found.";
+      }
+    } catch (error) {
+      bookingDetailsDiv.textContent = "Error loading booking.";
+      console.error(error);
+    }
+  }
+
+  continueBtn.addEventListener('click', async () => {
+    const paymentMethod = paymentMethodSelect.value;
+
+    if (!paymentMethod) {
+      alert("Please select a payment method.");
+      return;
+    }
+
+    try {
+      const bookingRef = doc(db, "bookings", bookingId);
+      await updateDoc(bookingRef, {
+        paymentMethod: paymentMethod,
+        status: "confirmed",
+        paymentTimestamp: new Date()
+      });
+
+      if (paymentMethod === "Cash On Delivery") {
+        alert("Booking Confirmed!");
+        window.location.href = "index.html";
+      } else {
+        alert("Payment method saved! Please proceed with UPI payment.");
+        // You can add UPI payment flow here or redirect accordingly.
+      }
+    } catch (error) {
+      console.error("Error updating payment method:", error);
+      alert("Failed to save payment method. Please try again.");
+    }
+  });
+
+  loadBooking();
+</script>
+
+</body>
+</html>
