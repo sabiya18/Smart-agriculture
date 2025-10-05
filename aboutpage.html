@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About Us - Smart Agri Rentals</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif;}
+body{
+  background:linear-gradient(135deg,#d4fc79,#96e6a1);
+  color:#333;overflow-x:hidden;
+}
+
+/* Header */
+header{
+  background:#2e7d32;color:white;
+  padding:18px;text-align:center;
+  font-size:1.5rem;font-weight:bold;
+  box-shadow:0 2px 8px rgba(0,0,0,0.25);
+}
+
+/* Container */
+.container{
+  max-width:1100px;margin:auto;padding:50px 20px;text-align:center;
+}
+.container h2{
+  font-size:2rem;margin-bottom:15px;color:#2e7d32;
+}
+.container p{
+  font-size:1.1rem;line-height:1.7;margin-bottom:40px;
+}
+
+/* Gradient Cards */
+.cards{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:25px;margin-top:20px;
+}
+.card{
+  background:linear-gradient(135deg,#a8ff78,#78ffd6);
+  padding:30px;border-radius:18px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.2);
+  transition:transform 0.3s ease, box-shadow 0.3s ease;
+  text-align:center;
+}
+.card:hover{
+  transform:translateY(-10px) scale(1.04);
+  box-shadow:0 14px 30px rgba(0,0,0,0.25);
+}
+.card i{
+  font-size:2.5rem;margin-bottom:15px;color:#2e7d32;
+}
+.card h3{
+  margin-bottom:12px;color:#2e7d32;font-size:1.3rem;
+}
+.card p{
+  font-size:1rem;line-height:1.6;
+}
+
+/* Footer */
+footer{
+  margin-top:50px;padding:15px;background:#2e7d32;color:white;
+  text-align:center;font-size:0.95rem;
+}
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+
+<header>🌾 About Smart Agri Rentals</header>
+
+<div class="container">
+  <h2>Making Farming Smarter, Easier & Affordable</h2>
+  <p>Smart Agri Rentals is here to empower farmers by providing modern farming equipment at affordable rates. 
+     Our goal is to support sustainable agriculture and improve productivity with the right tools at the right time.</p>
+
+  <!-- Cards Section -->
+  <div class="cards">
+    <div class="card">
+      <i class="fas fa-bullseye"></i>
+      <h3>Our Mission</h3>
+      <p>To provide easy access to modern farming tools and improve farmers’ lives through smart solutions.</p>
+    </div>
+    <div class="card">
+      <i class="fas fa-eye"></i>
+      <h3>Our Vision</h3>
+      <p>Building a future where every farmer uses advanced equipment for sustainable and profitable farming.</p>
+    </div>
+    <div class="card">
+      <i class="fas fa-hand-holding-dollar"></i>
+      <h3>Affordable Rentals</h3>
+      <p>Cost-effective rental plans so that even small farmers can benefit from smart agriculture technology.</p>
+    </div>
+  </div>
+</div>
+
+<!-- GSAP Animation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>
+gsap.from("header",{y:-80,opacity:0,duration:1,ease:"bounce"});
+gsap.from(".container h2",{opacity:0,y:40,duration:1,delay:0.2});
+gsap.from(".container p",{opacity:0,y:60,duration:1,delay:0.4});
+gsap.from(".card",{opacity:0,y:100,stagger:0.3,duration:1,ease:"power2.out",delay:0.6});
+gsap.from("footer",{opacity:0,y:50,duration:1,delay:1});
+</script>
+
+</body>
+</html>
